@@ -6,6 +6,7 @@ from agent import Agent
 from tools.websearch import WebSearchTool
 from tools.filesystem import FileSystemTool
 from tools.email import EmailTool
+from tools.browser import BrowserTool
 import uuid
 from datetime import datetime
 
@@ -27,8 +28,10 @@ def run_agent_background(job_id: str, goal: str):
         tools = [
             WebSearchTool(),
             FileSystemTool(),
-            EmailTool()
+            EmailTool(),
+            BrowserTool()
         ]
+	
         
         # Create and run agent
         agent = Agent(tools)
