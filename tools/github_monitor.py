@@ -96,49 +96,74 @@ class GitHubInternshipMonitor(BaseTool):
             return {'commit_count': 0, 'latest_time': None, 'latest_message': None}
     
     def _extract_internships(self, raw_url):
-        """Extract internship listings from README HTML tables"""
+        """Extract internship listings from README HTML tables with real URLs"""
         try:
             response = requests.get(raw_url, timeout=15)
             if response.status_code == 200:
                 content = response.text
                 internships = []
                 
-                # Parse HTML tables for internship data
-                # Pattern matches: <td><strong><a>Company</a></strong></td><td>Role</td><td>Location</td>
-                table_pattern = r'<td><strong><a[^>]*>([^<]+)</a></strong></td>\s*<td>([^<]+)</td>\s*<td>([^<]+)</td>'
-                matches = re.findall(table_pattern, content, re.IGNORECASE | re.MULTILINE)
+                # Enhanced pattern to capture real application URLs
+                # Looks for: Company | Position | Location | Application(with real URL)
+                table_pattern = r'<td><strong><a[^>]*>([^<]+)</a></strong></td>\s*<td>([^<]+)</td>\s*<td>([^<]+)</td>\s*<td[^>]*>.*?href="([^"]+)"[^>]*>[^<]*</a>'
+                matches = re.findall(table_pattern, content, re.IGNORECASE | re.MULTILINE | re.DOTALL)
                 
                 for match in matches:
                     company = match[0].strip()
                     position = match[1].strip()
                     location = match[2].strip()
+                    real_url = match[3].strip()
                     
-                    # Filter for internships (the position should contain intern-related keywords)
+                    # Skip Simplify tracking URLs, get the actual application URL
+                    if 'simplify.jobs' in real_url and 'utm_source=Simplify' in real_url:
+                        # Try to find the actual application URL in the same row
+                        greenhouse_pattern = r'href="(https://[^"]*greenhouse[^"]*)"'
+                        lever_pattern = r'href="(https://[^"]*lever[^"]*)"'
+                        company_pattern = r'href="(https://(?!simplify\.jobs)[^"]*)"'
+                        
+                        # Look for actual application URLs
+                        greenhouse_match = re.search(greenhouse_pattern, content)
+                        lever_match = re.search(lever_pattern, content)
+                        company_match = re.search(company_pattern, content)
+                        
+                        if greenhouse_match:
+                            real_url = greenhouse_match.group(1)
+                        elif lever_match:
+                            real_url = lever_match.group(1)
+                        elif company_match:
+                            real_url = company_match.group(1)
+                    
+                    # Filter for internships
                     if any(keyword in position.lower() for keyword in ['intern', 'co-op', 'coop', 'summer', 'spring', 'fall']):
                         internships.append({
                             'company': company,
                             'position': position,
                             'location': location,
+                            'url': real_url,  # Real application URL
                             'source': 'GitHub'
                         })
                 
-                # Alternative pattern for different table formats
+                # Fallback: If enhanced pattern fails, use simpler approach
                 if len(internships) == 0:
-                    # Try simpler pattern
-                    simple_pattern = r'<td>.*?([A-Za-z][^<]{2,30})</td>\s*<td>([^<]*[Ii]ntern[^<]*)</td>\s*<td>([^<]+)</td>'
-                    matches = re.findall(simple_pattern, content, re.IGNORECASE | re.MULTILINE)
+                    simple_pattern = r'<td><strong><a[^>]*>([^<]+)</a></strong></td>\s*<td>([^<]+)</td>\s*<td>([^<]+)</td>'
+                    simple_matches = re.findall(simple_pattern, content, re.IGNORECASE | re.MULTILINE)
                     
-                    for match in matches:
+                    for match in simple_matches:
                         company = match[0].strip()
                         position = match[1].strip()
                         location = match[2].strip()
                         
-                        internships.append({
-                            'company': company,
-                            'position': position,
-                            'location': location,
-                            'source': 'GitHub'
-                        })
+                        if any(keyword in position.lower() for keyword in ['intern', 'co-op', 'coop', 'summer', 'spring', 'fall']):
+                            # Create a search URL as fallback
+                            search_url = f"https://www.google.com/search?q={company.replace(' ', '+')}+{position.replace(' ', '+')}+internship"
+                            
+                            internships.append({
+                                'company': company,
+                                'position': position,
+                                'location': location,
+                                'url': search_url,
+                                'source': 'GitHub'
+                            })
                 
                 return {
                     'internship_count': len(internships),
@@ -174,9 +199,6 @@ class GitHubChangeDetector(BaseTool):
             for repo_data in results["data"]["repo_data"]:
                 # Check if we have new internships to add to database
                 for internship in repo_data.get("sample_internships", []):
-                    # Create a synthetic URL since GitHub repos don't have direct apply links
-                    synthetic_url = f"https://github.com/internship/{internship['company'].lower().replace(' ', '-')}-{internship['position'].lower().replace(' ', '-')}"
-                    
                     # Check if this combination exists in database
                     session = get_db_session()
                     existing = session.query(InternshipListing).filter_by(
@@ -189,7 +211,7 @@ class GitHubChangeDetector(BaseTool):
                             'title': internship['position'],
                             'company': internship['company'],
                             'location': internship['location'],
-                            'url': synthetic_url,
+                            'url': internship['url'],  # Now contains real URL
                             'source': 'GitHub-' + repo_data['repo'],
                             'discovered_at': datetime.utcnow().isoformat()
                         })
