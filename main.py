@@ -8,6 +8,8 @@ from tools.filesystem import FileSystemTool
 from tools.email import EmailTool
 from tools.browser import BrowserTool
 from tools.database import DatabaseTool, DatabaseQueryTool
+from tools.ats_monitor import ATSMonitorTool, ATSChangeDetectorTool
+from tools.instant_alert import InstantAlertTool
 import uuid
 from datetime import datetime
 
@@ -32,7 +34,10 @@ def run_agent_background(job_id: str, goal: str):
             EmailTool(),
             BrowserTool(),
             DatabaseTool(),
-            DatabaseQueryTool()
+            DatabaseQueryTool(),
+            ATSMonitorTool(),
+            ATSChangeDetectorTool(),
+            InstantAlertTool()
         ]
 	
         
