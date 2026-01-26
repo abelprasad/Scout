@@ -10,24 +10,30 @@ from tools.browser import BrowserTool
 from tools.database import DatabaseTool, DatabaseQueryTool
 from tools.ats_monitor import ATSMonitorTool, ATSChangeDetectorTool
 from tools.instant_alert import InstantAlertTool
+from tools.github_monitor import GitHubInternshipMonitor, GitHubChangeDetector
 import uuid
 from datetime import datetime
 
-app = FastAPI(title="AI Agent API")
+app = FastAPI(title="AI Agent API", description="Autonomous AI agent for internship discovery")
 
-# In-memory job storage
+# Job storage (in-memory for now)
 jobs = {}
 
 class JobRequest(BaseModel):
     goal: str
 
-def run_agent_background(job_id: str, goal: str):
-    """Run the agent in the background"""
-    jobs[job_id]['status'] = 'running'
-    jobs[job_id]['started_at'] = datetime.now().isoformat()
-    
+class JobResponse(BaseModel):
+    job_id: str
+    status: str
+    message: str
+
+def run_agent(job_id: str, goal: str):
+    """Run agent in background"""
     try:
-        # Initialize tools
+        jobs[job_id]["status"] = "running"
+        jobs[job_id]["started_at"] = datetime.utcnow()
+        
+        # Create agent with all tools
         tools = [
             WebSearchTool(),
             FileSystemTool(),
@@ -37,64 +43,98 @@ def run_agent_background(job_id: str, goal: str):
             DatabaseQueryTool(),
             ATSMonitorTool(),
             ATSChangeDetectorTool(),
-            InstantAlertTool()
+            InstantAlertTool(),
+            GitHubInternshipMonitor(),
+            GitHubChangeDetector()
         ]
-	
         
-        # Create and run agent
-        agent = Agent(tools)
-        result = agent.run(goal)
+        agent = Agent(tools=tools)
         
-        jobs[job_id]['status'] = 'completed'
-        jobs[job_id]['result'] = result
-        jobs[job_id]['completed_at'] = datetime.now().isoformat()
+        # Run agent
+        result = agent.run(goal, job_id)
+        
+        # Update job status
+        jobs[job_id]["status"] = "completed"
+        jobs[job_id]["completed_at"] = datetime.utcnow()
+        jobs[job_id]["result"] = result
         
     except Exception as e:
-        jobs[job_id]['status'] = 'failed'
-        jobs[job_id]['error'] = str(e)
-        jobs[job_id]['completed_at'] = datetime.now().isoformat()
+        jobs[job_id]["status"] = "failed"
+        jobs[job_id]["error"] = str(e)
+        jobs[job_id]["completed_at"] = datetime.utcnow()
 
-@app.post("/jobs")
-def create_job(request: JobRequest, background_tasks: BackgroundTasks):
-    """Submit a new goal for the agent"""
+@app.post("/jobs", response_model=JobResponse)
+async def create_job(job: JobRequest, background_tasks: BackgroundTasks):
+    """Submit a new job to the agent"""
     job_id = str(uuid.uuid4())[:8]
     
+    # Initialize job record
     jobs[job_id] = {
-        'goal': request.goal,
-        'status': 'queued',
-        'created_at': datetime.now().isoformat()
+        "id": job_id,
+        "goal": job.goal,
+        "status": "queued",
+        "created_at": datetime.utcnow(),
+        "started_at": None,
+        "completed_at": None,
+        "result": None,
+        "error": None
     }
     
     # Start agent in background
-    background_tasks.add_task(run_agent_background, job_id, request.goal)
+    background_tasks.add_task(run_agent, job_id, job.goal)
     
-    return {
-        "job_id": job_id,
-        "status": "queued",
-        "message": "Agent started"
-    }
+    return JobResponse(
+        job_id=job_id,
+        status="queued",
+        message="Agent started"
+    )
 
 @app.get("/jobs/{job_id}")
-def get_job(job_id: str):
-    """Get status of a job"""
+async def get_job(job_id: str):
+    """Get job status and results"""
     if job_id not in jobs:
         return {"error": "Job not found"}
     
-    return jobs[job_id]
+    job = jobs[job_id].copy()
+    
+    # Convert datetime objects to strings for JSON serialization
+    for field in ["created_at", "started_at", "completed_at"]:
+        if job[field]:
+            job[field] = job[field].isoformat()
+    
+    return job
 
 @app.get("/jobs")
-def list_jobs():
+async def list_jobs():
     """List all jobs"""
-    return {"jobs": jobs}
+    job_list = []
+    for job in jobs.values():
+        job_copy = job.copy()
+        # Convert datetime objects to strings
+        for field in ["created_at", "started_at", "completed_at"]:
+            if job_copy[field]:
+                job_copy[field] = job_copy[field].isoformat()
+        job_list.append(job_copy)
+    
+    return {"jobs": job_list, "count": len(job_list)}
 
 @app.get("/")
-def root():
+async def root():
     """API info"""
     return {
-        "name": "AI Agent API",
-        "version": "0.1.0",
+        "message": "AI Agent API",
+        "version": "2.0",
+        "capabilities": [
+            "Web Search",
+            "Browser Automation", 
+            "Email Notifications",
+            "Database Storage",
+            "ATS Monitoring",
+            "GitHub Repo Monitoring",
+            "Instant Alerts"
+        ],
         "endpoints": {
-            "POST /jobs": "Create a new job",
+            "POST /jobs": "Submit new agent goal",
             "GET /jobs/{job_id}": "Get job status",
             "GET /jobs": "List all jobs"
         }

@@ -7,7 +7,9 @@ class Agent:
         self.conversation_history = []
         self.verbose = True
     
-    def run(self, goal):
+    def run(self, goal, job_id=None):
+        """Main agent loop - keeps running until goal is complete"""
+
         """Main agent loop - keeps running until goal is complete"""
         
         # Build tool descriptions for the LLM

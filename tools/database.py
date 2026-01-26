@@ -8,7 +8,7 @@ class DatabaseTool(BaseTool):
     name = "save_to_database"
     description = "Save internship data to database. Args: {'internships': [list of internship objects], 'agent_job_id': 'job_id'}"
     
-    def execute(self, internships, agent_job_id):
+    def execute(self, internships, agent_job_id=None):
         """Save internship listings to database"""
         try:
             session = get_db_session()
