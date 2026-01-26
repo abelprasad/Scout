@@ -7,6 +7,7 @@ from tools.websearch import WebSearchTool
 from tools.filesystem import FileSystemTool
 from tools.email import EmailTool
 from tools.browser import BrowserTool
+from tools.database import DatabaseTool, DatabaseQueryTool
 import uuid
 from datetime import datetime
 
@@ -29,7 +30,9 @@ def run_agent_background(job_id: str, goal: str):
             WebSearchTool(),
             FileSystemTool(),
             EmailTool(),
-            BrowserTool()
+            BrowserTool(),
+            DatabaseTool(),
+            DatabaseQueryTool()
         ]
 	
         
