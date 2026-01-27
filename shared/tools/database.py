@@ -1,5 +1,9 @@
-from .base import BaseTool
-from database import get_db_session, InternshipListing, save_internship
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from shared.database.database import get_db_session, InternshipListing, save_internship
+from shared.tools.base import BaseTool
 from datetime import datetime
 
 class DatabaseTool(BaseTool):
@@ -59,12 +63,12 @@ class DatabaseTool(BaseTool):
                 
                 # Create new internship record
                 new_internship = InternshipListing(
-                    agent_job_id=agent_job_id or "github_monitor",
+                    agent_job_id=agent_job_id or "multi_agent",
                     title=title,
                     company=company,
                     url=url,
                     location=location,
-                    description=description[:500],  # Truncate long descriptions
+                    description=description[:500] if description else "",
                     requirements="",
                     deadline="",
                     application_status="not_applied",

@@ -1,7 +1,12 @@
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from database import get_db_session, InternshipListing, AgentJob, mark_as_applied
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from shared.database.database import get_db_session, InternshipListing, AgentJob, mark_as_applied
 from sqlalchemy import func, or_
 import json
 from datetime import datetime

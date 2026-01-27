@@ -1,4 +1,9 @@
-from .base import BaseTool
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from shared.tools.base import BaseTool
+from shared.database.database import get_db_session, InternshipListing
 import requests
 import json
 from datetime import datetime
@@ -184,8 +189,6 @@ class GitHubChangeDetector(BaseTool):
     def execute(self, repos=None):
         """Detect new activity on GitHub internship repos"""
         try:
-            from database import get_db_session, InternshipListing
-            
             # Get current GitHub data
             github_monitor = GitHubInternshipMonitor()
             results = github_monitor.execute(repos)

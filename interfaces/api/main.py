@@ -2,21 +2,30 @@ from dotenv import load_dotenv
 load_dotenv()
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
+import sys
+import os
+
+# Add paths for new structure
+sys.path.append('/home/abel/ai-agent')
+sys.path.append('/home/abel/ai-agent/shared')
+sys.path.append('/home/abel/ai-agent/agents')
+
 from agent import Agent
-from tools.websearch import WebSearchTool
-from tools.filesystem import FileSystemTool
-from tools.email import EmailTool
-from tools.browser import BrowserTool
-from tools.database import DatabaseTool, DatabaseQueryTool
-from tools.ats_monitor import ATSMonitorTool, ATSChangeDetectorTool
-from tools.instant_alert import InstantAlertTool
-from tools.github_monitor import GitHubInternshipMonitor, GitHubChangeDetector
+from shared.tools.websearch import WebSearchTool
+from shared.tools.filesystem import FileSystemTool
+from shared.tools.email import EmailTool
+from shared.tools.browser import BrowserTool
+from shared.tools.database import DatabaseTool, DatabaseQueryTool
+from agents.scout.github_monitor import GitHubInternshipMonitor, GitHubChangeDetector
+from agents.scout.ats_monitor import ATSMonitorTool, ATSChangeDetectorTool
+from agents.scout.instant_alert import InstantAlertTool
+from agents.orchestrator.orchestrator_agent import OrchestratorAgent
 import uuid
 from datetime import datetime
 
-app = FastAPI(title="AI Agent API", description="Autonomous AI agent for internship discovery")
+app = FastAPI(title="Multi-Agent AI System", description="Nuclear internship detection with specialized agents")
 
-# Job storage (in-memory for now)
+# Job storage
 jobs = {}
 
 class JobRequest(BaseModel):
@@ -28,12 +37,12 @@ class JobResponse(BaseModel):
     message: str
 
 def run_agent(job_id: str, goal: str):
-    """Run agent in background"""
+    """Run multi-agent system in background"""
     try:
         jobs[job_id]["status"] = "running"
         jobs[job_id]["started_at"] = datetime.utcnow()
         
-        # Create agent with all tools
+        # Create agent with all specialized tools
         tools = [
             WebSearchTool(),
             FileSystemTool(),
@@ -41,16 +50,17 @@ def run_agent(job_id: str, goal: str):
             BrowserTool(),
             DatabaseTool(),
             DatabaseQueryTool(),
+            GitHubInternshipMonitor(),
+            GitHubChangeDetector(),
             ATSMonitorTool(),
             ATSChangeDetectorTool(),
             InstantAlertTool(),
-            GitHubInternshipMonitor(),
-            GitHubChangeDetector()
+            OrchestratorAgent()  # The orchestrator manages workflow
         ]
         
         agent = Agent(tools=tools)
         
-        # Run agent
+        # Run multi-agent system
         result = agent.run(goal, job_id)
         
         # Update job status
@@ -65,10 +75,9 @@ def run_agent(job_id: str, goal: str):
 
 @app.post("/jobs", response_model=JobResponse)
 async def create_job(job: JobRequest, background_tasks: BackgroundTasks):
-    """Submit a new job to the agent"""
+    """Submit job to multi-agent system"""
     job_id = str(uuid.uuid4())[:8]
     
-    # Initialize job record
     jobs[job_id] = {
         "id": job_id,
         "goal": job.goal,
@@ -80,13 +89,12 @@ async def create_job(job: JobRequest, background_tasks: BackgroundTasks):
         "error": None
     }
     
-    # Start agent in background
     background_tasks.add_task(run_agent, job_id, job.goal)
     
     return JobResponse(
         job_id=job_id,
         status="queued",
-        message="Agent started"
+        message="Multi-agent system started"
     )
 
 @app.get("/jobs/{job_id}")
@@ -97,47 +105,34 @@ async def get_job(job_id: str):
     
     job = jobs[job_id].copy()
     
-    # Convert datetime objects to strings for JSON serialization
     for field in ["created_at", "started_at", "completed_at"]:
         if job[field]:
             job[field] = job[field].isoformat()
     
     return job
 
-@app.get("/jobs")
-async def list_jobs():
-    """List all jobs"""
-    job_list = []
-    for job in jobs.values():
-        job_copy = job.copy()
-        # Convert datetime objects to strings
-        for field in ["created_at", "started_at", "completed_at"]:
-            if job_copy[field]:
-                job_copy[field] = job_copy[field].isoformat()
-        job_list.append(job_copy)
-    
-    return {"jobs": job_list, "count": len(job_list)}
-
 @app.get("/")
 async def root():
-    """API info"""
+    """Multi-agent system info"""
     return {
-        "message": "AI Agent API",
-        "version": "2.0",
+        "message": "Nuclear Internship Detection - Multi-Agent System",
+        "version": "3.0",
+        "architecture": "Multi-Agent Orchestrated Workflow",
+        "agents": {
+            "orchestrator": "Workflow coordination and database management",
+            "scout": "GitHub/ATS internship discovery", 
+            "analyzer": "Resume matching (coming soon)",
+            "quality": "Professional review (coming soon)",
+            "applicant": "Auto-application (coming soon)"
+        },
         "capabilities": [
-            "Web Search",
-            "Browser Automation", 
-            "Email Notifications",
-            "Database Storage",
-            "ATS Monitoring",
-            "GitHub Repo Monitoring",
-            "Instant Alerts"
-        ],
-        "endpoints": {
-            "POST /jobs": "Submit new agent goal",
-            "GET /jobs/{job_id}": "Get job status",
-            "GET /jobs": "List all jobs"
-        }
+            "2,697+ internship discovery",
+            "Real-time change detection",
+            "Database management",
+            "Professional web dashboard",
+            "Instant notifications",
+            "Multi-agent coordination"
+        ]
     }
 
 if __name__ == "__main__":
