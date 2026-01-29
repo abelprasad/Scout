@@ -59,7 +59,7 @@ class GitHubInternshipMonitor(BaseTool):
                             'latest_commit_time': commits_data['latest_time'],
                             'latest_commit_message': commits_data['latest_message'],
                             'internships_found': content_data['internship_count'],
-                            'sample_internships': content_data['sample_internships'][:5],  # First 5
+                            'sample_internships': content_data['sample_internships'],  # All internships
                             'last_checked': datetime.utcnow().isoformat()
                         })
 
