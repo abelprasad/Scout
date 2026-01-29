@@ -157,7 +157,9 @@ class TelegramBot:
 
             # Count internships in database
             import sqlite3
-            db_path = os.path.expanduser("~/ai-agent/internships.db")
+            # Use project directory for consistency
+            project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            db_path = os.path.join(project_dir, "internships.db")
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM internship_listings")
@@ -219,8 +221,10 @@ Duplicates: {data.get('duplicates_filtered', 'N/A')}
         self.send_message("💾 Creating backup...")
 
         try:
-            db_path = os.path.expanduser("~/ai-agent/internships.db")
-            backup_dir = os.path.expanduser("~/ai-agent/backups")
+            # Use project directory for consistency
+            project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            db_path = os.path.join(project_dir, "internships.db")
+            backup_dir = os.path.join(project_dir, "backups")
             os.makedirs(backup_dir, exist_ok=True)
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -277,7 +281,8 @@ Size: {size_mb:.2f} MB
 def main():
     """Run the bot standalone"""
     from dotenv import load_dotenv
-    load_dotenv(os.path.expanduser("~/ai-agent/.env"))
+    project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    load_dotenv(os.path.join(project_dir, ".env"))
 
     bot = TelegramBot()
     bot.run()

@@ -44,8 +44,10 @@ class InternshipListing(Base):
     interest_level = Column(Integer, default=0)  # 1-5 scale
 
 def get_database_url():
-    """Get database file path"""
-    db_path = os.path.expanduser("~/ai-agent/internships.db")
+    """Get database file path - uses project directory for consistency"""
+    # Use project directory instead of home to avoid path issues across users
+    project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    db_path = os.path.join(project_dir, "internships.db")
     return f"sqlite:///{db_path}"
 
 def init_database():

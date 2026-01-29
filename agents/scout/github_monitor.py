@@ -30,7 +30,7 @@ class GitHubInternshipMonitor(BaseTool):
             }
         }
 
-    def execute(self, repos=None, check_recent_commits=True, limit=100):
+    def execute(self, repos=None, check_recent_commits=True, limit=500):
         """Monitor GitHub internship repos for updates"""
         try:
             print(f"[GitHubMonitor] Starting GitHub internship monitoring...")
@@ -104,7 +104,7 @@ class GitHubInternshipMonitor(BaseTool):
             print(f"[GitHubMonitor] Error checking commits: {str(e)}")
             return {'commit_count': 0, 'latest_time': None, 'latest_message': None}
 
-    def _extract_internships(self, raw_url, limit=100):
+    def _extract_internships(self, raw_url, limit=500):
         """Extract internship listings from README - OPTIMIZED VERSION"""
         try:
             print(f"[GitHubMonitor] Fetching README content...")
