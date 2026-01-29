@@ -1,0 +1,17 @@
+[Unit]
+Description=AI Agent Web Dashboard
+After=network.target ai-agent-api.service
+Wants=ai-agent-api.service
+
+[Service]
+Type=simple
+User=abel
+WorkingDirectory=/home/abel/ai-agent
+Environment="HOME=/home/abel"
+EnvironmentFile=/home/abel/ai-agent/.env
+ExecStart=/usr/bin/python3 interfaces/web/web_dashboard.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
