@@ -1,0 +1,18 @@
+[Unit]
+Description=AI Agent FastAPI Server
+After=network.target ollama.service
+Wants=ollama.service
+
+[Service]
+Type=simple
+User=abel
+WorkingDirectory=/home/abel/ai-agent
+Environment="HOME=/home/abel"
+EnvironmentFile=/home/abel/ai-agent/.env
+ExecStartPre=/bin/bash -c 'for i in {1..30}; do curl -s http://localhost:11434/api/tags >/dev/null && exit 0; sleep 2; done; exit 1'
+ExecStart=/usr/bin/python3 interfaces/api/main.py
+Restart=on-failure
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

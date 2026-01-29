@@ -1,0 +1,17 @@
+[Unit]
+Description=AI Agent Telegram Bot
+After=network.target ai-agent-api.service
+Wants=ai-agent-api.service
+
+[Service]
+Type=simple
+User=abel
+WorkingDirectory=/home/abel/ai-agent
+Environment="HOME=/home/abel"
+EnvironmentFile=/home/abel/ai-agent/.env
+ExecStart=/usr/bin/python3 /home/abel/ai-agent/shared/tools/telegram_bot.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

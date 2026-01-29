@@ -1,0 +1,8 @@
+# AI Agent Cron Jobs
+# Install with: crontab ~/ai-agent/scripts/crontab.txt
+
+# Internship discovery - 8 AM and 6 PM daily
+0 8,18 * * * /home/abel/ai-agent/scripts/run-workflow.sh
+
+# DB backup - 3 AM daily
+0 3 * * * cp /home/abel/ai-agent/internships.db /home/abel/ai-agent/backups/internships_$(date +\%Y\%m\%d).db 2>/dev/null

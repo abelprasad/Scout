@@ -6,7 +6,7 @@ from shared.tools.base import BaseTool
 from agents.scout.github_monitor import GitHubInternshipMonitor, GitHubChangeDetector
 from shared.tools.database import DatabaseTool, DatabaseQueryTool
 from agents.scout.instant_alert import InstantAlertTool
-from shared.tools.email import EmailTool
+from shared.tools.email_tool import EmailTool
 from datetime import datetime
 
 class OrchestratorAgent(BaseTool):
