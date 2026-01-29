@@ -13,7 +13,7 @@ sys.path.append('/home/abel/ai-agent/agents')
 from agent import Agent
 from shared.tools.websearch import WebSearchTool
 from shared.tools.filesystem import FileSystemTool
-from shared.tools.email import EmailTool
+from shared.tools.email_tool import EmailTool
 from shared.tools.browser import BrowserTool
 from shared.tools.database import DatabaseTool, DatabaseQueryTool
 from shared.tools.telegram import TelegramTool
