@@ -12,7 +12,7 @@ import re
 
 class GitHubInternshipMonitor(BaseTool):
     name = "monitor_github_internships"
-    description = "Monitor GitHub internship repos for new postings. Args: {'repos': ['SimplifyJobs', 'Pitt-CSC']}"
+    description = "Monitor GitHub internship repos for new postings. Args: {'repos': ['SimplifyJobs', 'Pitt-CSC', 'SpeedyApply']}"
 
     def __init__(self):
         self.repos = {
@@ -23,6 +23,10 @@ class GitHubInternshipMonitor(BaseTool):
             'Pitt-CSC': {
                 'url': 'https://api.github.com/repos/pittcsc/Summer2026-Internships/commits',
                 'raw_url': 'https://raw.githubusercontent.com/pittcsc/Summer2026-Internships/dev/README.md'
+            },
+            'SpeedyApply': {
+                'url': 'https://api.github.com/repos/speedyapply/2026-SWE-College-Jobs/commits',
+                'raw_url': 'https://raw.githubusercontent.com/speedyapply/2026-SWE-College-Jobs/main/README.md'
             }
         }
 
