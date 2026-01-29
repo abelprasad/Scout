@@ -134,6 +134,35 @@ async def root():
             "Multi-agent coordination"
         ]
     }
+@app.post("/run-workflow")
+async def run_workflow():
+    """Direct workflow execution - bypasses agent/LLM layer"""
+    try:
+        from agents.orchestrator.orchestrator_agent import OrchestratorAgent
+        
+        print("\n" + "="*60)
+        print("DIRECT WORKFLOW EXECUTION")
+        print("="*60)
+        
+        orchestrator = OrchestratorAgent()
+        result = orchestrator.execute()
+        
+        print("="*60)
+        print("✅ WORKFLOW COMPLETE")
+        print("="*60 + "\n")
+        
+        return {
+            "success": True,
+            "message": "Workflow completed successfully",
+            "result": result
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 if __name__ == "__main__":
     import uvicorn
