@@ -16,6 +16,7 @@ from shared.tools.filesystem import FileSystemTool
 from shared.tools.email import EmailTool
 from shared.tools.browser import BrowserTool
 from shared.tools.database import DatabaseTool, DatabaseQueryTool
+from shared.tools.telegram import TelegramTool
 from agents.scout.github_monitor import GitHubInternshipMonitor, GitHubChangeDetector
 from agents.scout.ats_monitor import ATSMonitorTool, ATSChangeDetectorTool
 from agents.scout.instant_alert import InstantAlertTool
@@ -50,6 +51,7 @@ def run_agent(job_id: str, goal: str):
             BrowserTool(),
             DatabaseTool(),
             DatabaseQueryTool(),
+            TelegramTool(),
             GitHubInternshipMonitor(),
             GitHubChangeDetector(),
             ATSMonitorTool(),
