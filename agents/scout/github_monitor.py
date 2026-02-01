@@ -36,10 +36,6 @@ class GitHubInternshipMonitor(BaseTool):
                 'url': 'https://api.github.com/repos/summer2026internships/Summer2026-Internships/commits',
                 'raw_url': 'https://raw.githubusercontent.com/summer2026internships/Summer2026-Internships/main/README.md'
             },
-            'Canada': {
-                'url': 'https://api.github.com/repos/negarprh/Canadian-Tech-Internships-2026/commits',
-                'raw_url': 'https://raw.githubusercontent.com/negarprh/Canadian-Tech-Internships-2026/main/README.md'
-            }
         }
 
     def execute(self, repos=None, check_recent_commits=True, limit=500):
