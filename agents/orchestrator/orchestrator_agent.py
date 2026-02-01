@@ -51,10 +51,11 @@ class OrchestratorAgent(BaseTool):
             for internship in all_samples:
                 formatted_internships.append({
                     'company': internship['company'],
-                    'position': internship['position'], 
+                    'position': internship['position'],
                     'location': internship['location'],
                     'url': internship['url'],
-                    'source': internship['source']
+                    'source': internship['source'],
+                    'age_days': internship.get('age_days')
                 })
             
             db_result = self.database_tool.execute(

@@ -43,6 +43,9 @@ class InternshipListing(Base):
     relevance_score = Column(Float, default=0.0)
     interest_level = Column(Integer, default=0)  # 1-5 scale
 
+    # Posting age (days since posted on GitHub)
+    age_days = Column(Integer, nullable=True)
+
 def get_database_url():
     """Get database file path - uses project directory for consistency"""
     # Use project directory instead of home to avoid path issues across users

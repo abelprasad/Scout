@@ -44,6 +44,7 @@ class DatabaseTool(BaseTool):
                 location = internship_data.get('location', '')
                 description = internship_data.get('description', '')
                 source = internship_data.get('source', 'GitHub')
+                age_days = internship_data.get('age_days')
                 
                 # Skip if missing essential data
                 if not title or not company:
@@ -73,7 +74,8 @@ class DatabaseTool(BaseTool):
                     deadline="",
                     application_status="not_applied",
                     applied=False,
-                    discovered_at=datetime.utcnow()
+                    discovered_at=datetime.utcnow(),
+                    age_days=int(age_days) if age_days else None
                 )
                 
                 session.add(new_internship)

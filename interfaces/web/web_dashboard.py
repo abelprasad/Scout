@@ -392,7 +392,8 @@ def dashboard():
                         <label>Sort By</label>
                         <select id="sort-filter" onchange="loadData()">
                             <option value="relevance">Best Match</option>
-                            <option value="date">Newest First</option>
+                            <option value="posted">Recently Posted</option>
+                            <option value="date">Recently Found</option>
                             <option value="company">Company A-Z</option>
                         </select>
                     </div>
@@ -530,7 +531,7 @@ def dashboard():
                         <div class="internship-info">
                             <div class="title">${internship.title}</div>
                             <div class="company">${internship.company}</div>
-                            <div class="meta">${internship.location || 'Location not specified'} • Discovered: ${new Date(internship.discovered_at).toLocaleDateString()}</div>
+                            <div class="meta">${internship.location || 'Location not specified'} ${internship.age_days ? `• Posted ${internship.age_days}d ago` : ''} • Found: ${new Date(internship.discovered_at).toLocaleDateString()}</div>
                             ${internship.url ? `<a href="${internship.url}" target="_blank" class="url">View Posting</a>` : ''}
                         </div>
                         <div class="internship-actions">
@@ -754,6 +755,9 @@ def get_internships(search: Optional[str] = None, status: Optional[str] = None, 
     # Sort options
     if sort == "relevance":
         internships = query.order_by(InternshipListing.relevance_score.desc()).limit(limit).all()
+    elif sort == "posted":
+        # Sort by age_days ascending (newest posts = lowest age_days)
+        internships = query.order_by(InternshipListing.age_days.asc().nullslast()).limit(limit).all()
     elif sort == "date":
         internships = query.order_by(InternshipListing.discovered_at.desc()).limit(limit).all()
     elif sort == "company":
@@ -774,7 +778,8 @@ def get_internships(search: Optional[str] = None, status: Optional[str] = None, 
             "application_status": internship.application_status,
             "applied": internship.applied,
             "notes": internship.notes,
-            "relevance_score": internship.relevance_score or 0
+            "relevance_score": internship.relevance_score or 0,
+            "age_days": internship.age_days
         })
 
     session.close()
