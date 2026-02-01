@@ -59,7 +59,7 @@ class GitHubInternshipMonitor(BaseTool):
                             'latest_commit_time': commits_data['latest_time'],
                             'latest_commit_message': commits_data['latest_message'],
                             'internships_found': content_data['internship_count'],
-                            'sample_internships': content_data['sample_internships'][:5],  # First 5
+                            'sample_internships': content_data['sample_internships'],  # All internships
                             'last_checked': datetime.utcnow().isoformat()
                         })
 
@@ -105,35 +105,66 @@ class GitHubInternshipMonitor(BaseTool):
             return {'commit_count': 0, 'latest_time': None, 'latest_message': None}
 
     def _extract_internships(self, raw_url, limit=500):
-        """Extract internship listings from README - OPTIMIZED VERSION"""
+        """Extract internship listings from README"""
         try:
             print(f"[GitHubMonitor] Fetching README content...")
             response = requests.get(raw_url, timeout=20)
-            
+
             if response.status_code != 200:
                 print(f"[GitHubMonitor] Failed to fetch README: {response.status_code}")
                 return {'internship_count': 0, 'sample_internships': []}
-            
+
             content = response.text
             internships = []
-            
+
             print(f"[GitHubMonitor] Parsing internships (limit: {limit})...")
-            
-            # Try multiple patterns for different table formats
-            
-            # Pattern 1: Markdown table with links
-            # | **Company** | Position | Location | [🔗](url)
-            pattern1 = r'\|\s*\*\*([^*]+)\*\*\s*\|\s*([^|]+)\|\s*([^|]+)\|[^|]*\[🔗\]\(([^)]+)\)'
-            matches1 = re.findall(pattern1, content)
-            
+
+            # Pattern 1: SimplifyJobs HTML table format with age
+            # <td><strong><a href="...">Company</a></strong></td>
+            # <td>Position</td>
+            # <td>Location</td>
+            # <td>...<a href="apply_url">...</td>
+            # <td>Xd</td> (age in days)
+            pattern1 = r'<tr>\s*<td><strong><a[^>]*>([^<]+)</a></strong></td>\s*<td>([^<]+)</td>\s*<td>([^<]+)</td>\s*<td[^>]*>.*?<a href="([^"]+)"[^>]*><img[^>]*alt="Apply"[^>]*>.*?</td>\s*<td>(\d+)d</td>'
+            matches1 = re.findall(pattern1, content, re.DOTALL)
+
             for match in matches1[:limit]:
                 company = match[0].strip()
                 position = match[1].strip()
                 location = match[2].strip()
                 url = match[3].strip()
-                
-                # Only internships
-                if any(keyword in position.lower() for keyword in ['intern', 'co-op', 'coop']):
+                age_days = match[4].strip() if len(match) > 4 else "0"
+
+                # Skip if URL is not a real application link
+                if 'simplify.jobs' in url and '/c/' in url:
+                    continue  # Skip company profile links
+
+                internships.append({
+                    'company': company,
+                    'position': position,
+                    'location': location,
+                    'url': url,
+                    'age_days': age_days,
+                    'source': 'GitHub'
+                })
+
+                if len(internships) >= limit:
+                    break
+
+            print(f"[GitHubMonitor] Pattern 1 found {len(internships)} internships")
+
+            # Pattern 2: SpeedyApply markdown format
+            # | Company | Position | Location | Link |
+            if len(internships) < 10:
+                pattern2 = r'\|\s*\[([^\]]+)\]\([^)]+\)\s*\|\s*([^|]+)\|\s*([^|]+)\|\s*\[Apply\]\(([^)]+)\)'
+                matches2 = re.findall(pattern2, content)
+
+                for match in matches2[:limit]:
+                    company = match[0].strip()
+                    position = match[1].strip()
+                    location = match[2].strip()
+                    url = match[3].strip()
+
                     internships.append({
                         'company': company,
                         'position': position,
@@ -141,64 +172,14 @@ class GitHubInternshipMonitor(BaseTool):
                         'url': url,
                         'source': 'GitHub'
                     })
-                    
-                if len(internships) >= limit:
-                    break
-            
-            # Pattern 2: HTML table format (fallback)
-            if len(internships) < 10:
-                pattern2 = r'<td><strong><a[^>]*>([^<]+)</a></strong></td>\s*<td>([^<]+)</td>\s*<td>([^<]+)</td>\s*<td[^>]*>.*?href="([^"]+)"'
-                matches2 = re.findall(pattern2, content, re.DOTALL)
-                
-                for match in matches2[:limit]:
-                    company = match[0].strip()
-                    position = match[1].strip()
-                    location = match[2].strip()
-                    url = match[3].strip()
-                    
-                    if any(keyword in position.lower() for keyword in ['intern', 'co-op', 'coop']):
-                        internships.append({
-                            'company': company,
-                            'position': position,
-                            'location': location,
-                            'url': url,
-                            'source': 'GitHub'
-                        })
-                        
+
                     if len(internships) >= limit:
                         break
-            
-            # Pattern 3: Simple table without HTML (last fallback)
-            if len(internships) < 10:
-                pattern3 = r'\|\s*([^|]+)\|\s*([^|]+)\|\s*([^|]+)\|'
-                matches3 = re.findall(pattern3, content)
-                
-                for match in matches3[:limit]:
-                    company = match[0].strip()
-                    position = match[1].strip()
-                    location = match[2].strip()
-                    
-                    # Skip header rows
-                    if company.lower() in ['company', 'name', '---']:
-                        continue
-                    
-                    if any(keyword in position.lower() for keyword in ['intern', 'co-op', 'coop']):
-                        # Create search URL as fallback
-                        search_url = f"https://www.google.com/search?q={company.replace(' ', '+')}+{position.replace(' ', '+')}+internship+application"
-                        
-                        internships.append({
-                            'company': company,
-                            'position': position,
-                            'location': location,
-                            'url': search_url,
-                            'source': 'GitHub'
-                        })
-                        
-                    if len(internships) >= limit:
-                        break
-            
+
+                print(f"[GitHubMonitor] Pattern 2 found {len(internships)} total")
+
             print(f"[GitHubMonitor] ✅ Found {len(internships)} internships")
-            
+
             return {
                 'internship_count': len(internships),
                 'sample_internships': internships
