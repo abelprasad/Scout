@@ -27,7 +27,7 @@ class OrchestratorAgent(BaseTool):
             
             # Step 1: GitHub Discovery (PROVEN TO WORK)
             print(f"[Orchestrator] Step 1: GitHub Discovery")
-            discovery = self.github_monitor.execute(repos=repos or ["SimplifyJobs", "Pitt-CSC", "SpeedyApply"], limit=500)
+            discovery = self.github_monitor.execute(repos=repos, limit=500)  # Uses all repos by default
             
             if not discovery["success"]:
                 return {"success": False, "error": f"Discovery failed: {discovery.get('error')}"}

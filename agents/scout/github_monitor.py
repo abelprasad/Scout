@@ -27,6 +27,18 @@ class GitHubInternshipMonitor(BaseTool):
             'SpeedyApply': {
                 'url': 'https://api.github.com/repos/speedyapply/2026-SWE-College-Jobs/commits',
                 'raw_url': 'https://raw.githubusercontent.com/speedyapply/2026-SWE-College-Jobs/main/README.md'
+            },
+            'VanshB03': {
+                'url': 'https://api.github.com/repos/vanshb03/Summer2026-Internships/commits',
+                'raw_url': 'https://raw.githubusercontent.com/vanshb03/Summer2026-Internships/main/README.md'
+            },
+            'Summer2026': {
+                'url': 'https://api.github.com/repos/summer2026internships/Summer2026-Internships/commits',
+                'raw_url': 'https://raw.githubusercontent.com/summer2026internships/Summer2026-Internships/main/README.md'
+            },
+            'Canada': {
+                'url': 'https://api.github.com/repos/negarprh/Canadian-Tech-Internships-2026/commits',
+                'raw_url': 'https://raw.githubusercontent.com/negarprh/Canadian-Tech-Internships-2026/main/README.md'
             }
         }
 
@@ -153,13 +165,12 @@ class GitHubInternshipMonitor(BaseTool):
 
             print(f"[GitHubMonitor] Pattern 1 found {len(internships)} internships")
 
-            # Pattern 2: SpeedyApply markdown format
-            # | Company | Position | Location | Link |
-            if len(internships) < 10:
+            # Pattern 2: Markdown table with [Company](url) | Position | Location | [Apply](url)
+            if len(internships) < limit:
                 pattern2 = r'\|\s*\[([^\]]+)\]\([^)]+\)\s*\|\s*([^|]+)\|\s*([^|]+)\|\s*\[Apply\]\(([^)]+)\)'
                 matches2 = re.findall(pattern2, content)
 
-                for match in matches2[:limit]:
+                for match in matches2[:limit - len(internships)]:
                     company = match[0].strip()
                     position = match[1].strip()
                     location = match[2].strip()
@@ -173,10 +184,110 @@ class GitHubInternshipMonitor(BaseTool):
                         'source': 'GitHub'
                     })
 
-                    if len(internships) >= limit:
-                        break
-
                 print(f"[GitHubMonitor] Pattern 2 found {len(internships)} total")
+
+            # Pattern 3: Simple markdown table | Company | Position | Location | Link |
+            if len(internships) < limit:
+                pattern3 = r'\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*\[(?:Apply|Link)\]\(([^)]+)\)\s*\|'
+                matches3 = re.findall(pattern3, content)
+
+                for match in matches3[:limit - len(internships)]:
+                    company = match[0].strip()
+                    position = match[1].strip()
+                    location = match[2].strip()
+                    url = match[3].strip()
+
+                    # Skip header rows or empty
+                    if company.lower() in ['company', 'name', '---', ''] or '---' in company:
+                        continue
+
+                    internships.append({
+                        'company': company,
+                        'position': position,
+                        'location': location,
+                        'url': url,
+                        'source': 'GitHub'
+                    })
+
+                print(f"[GitHubMonitor] Pattern 3 found {len(internships)} total")
+
+            # Pattern 4: VanshB03 format with HTML img links
+            # | Company | Role | Location | <a href="url"><img...></a> | Date |
+            if len(internships) < limit:
+                pattern4 = r'\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*<a href="([^"]+)"[^>]*><img[^>]*alt="Apply"[^>]*></a>\s*\|'
+                matches4 = re.findall(pattern4, content)
+
+                for match in matches4[:limit - len(internships)]:
+                    company = match[0].strip()
+                    position = match[1].strip()
+                    location = match[2].strip()
+                    url = match[3].strip()
+
+                    # Skip header rows
+                    if company.lower() in ['company', 'name', '---', ''] or '---' in company:
+                        continue
+
+                    internships.append({
+                        'company': company,
+                        'position': position,
+                        'location': location,
+                        'url': url,
+                        'source': 'GitHub'
+                    })
+
+                print(f"[GitHubMonitor] Pattern 4 found {len(internships)} total")
+
+            # Pattern 5: Summer2026 format [Apply Here](url)
+            # | Company | Role | Location | [Apply Here](url) |
+            if len(internships) < limit:
+                pattern5 = r'\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*\[Apply Here\]\(([^)]+)\)\s*\|'
+                matches5 = re.findall(pattern5, content)
+
+                for match in matches5[:limit - len(internships)]:
+                    company = match[0].strip()
+                    position = match[1].strip()
+                    location = match[2].strip()
+                    url = match[3].strip()
+
+                    # Skip header rows
+                    if company.lower() in ['company', 'name', '---', ''] or '---' in company:
+                        continue
+
+                    internships.append({
+                        'company': company,
+                        'position': position,
+                        'location': location,
+                        'url': url,
+                        'source': 'GitHub'
+                    })
+
+                print(f"[GitHubMonitor] Pattern 5 found {len(internships)} total")
+
+            # Pattern 6: Canadian repo with badge links
+            # | Company | Role | Location | [![Apply](badge)](url) | Date |
+            if len(internships) < limit:
+                pattern6 = r'\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*\[!\[Apply\][^\]]*\]\(([^)]+)\)\s*\|'
+                matches6 = re.findall(pattern6, content)
+
+                for match in matches6[:limit - len(internships)]:
+                    company = match[0].strip()
+                    position = match[1].strip()
+                    location = match[2].strip()
+                    url = match[3].strip()
+
+                    # Skip header rows and arrows
+                    if company.lower() in ['company', 'name', '---', ''] or '---' in company or company.startswith('↳'):
+                        continue
+
+                    internships.append({
+                        'company': company,
+                        'position': position,
+                        'location': location,
+                        'url': url,
+                        'source': 'GitHub'
+                    })
+
+                print(f"[GitHubMonitor] Pattern 6 found {len(internships)} total")
 
             print(f"[GitHubMonitor] ✅ Found {len(internships)} internships")
 
