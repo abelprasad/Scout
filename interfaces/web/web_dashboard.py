@@ -243,9 +243,29 @@ def dashboard():
                 background: #27272a; 
                 color: #a1a1aa; 
             }
-            .status.interviewing { 
-                background: #ca8a04; 
-                color: #fef3c7; 
+            .status.interviewing {
+                background: #ca8a04;
+                color: #fef3c7;
+            }
+
+            .score-badge {
+                padding: 4px 10px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+            .score-high {
+                background: #166534;
+                color: #bbf7d0;
+            }
+            .score-medium {
+                background: #854d0e;
+                color: #fef3c7;
+            }
+            .score-low {
+                background: #27272a;
+                color: #a1a1aa;
             }
 
             .action-btns { 
@@ -369,6 +389,14 @@ def dashboard():
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>Sort By</label>
+                        <select id="sort-filter" onchange="loadData()">
+                            <option value="relevance">Best Match</option>
+                            <option value="date">Newest First</option>
+                            <option value="company">Company A-Z</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <button class="btn" onclick="searchInternships()">Search</button>
                     </div>
                     <div class="form-group">
@@ -467,9 +495,10 @@ def dashboard():
             
             async function loadData() {
                 try {
+                    const sortBy = document.getElementById('sort-filter')?.value || 'relevance';
                     const [statsResponse, internshipsResponse] = await Promise.all([
                         fetch('/api/stats'),
-                        fetch('/api/internships?limit=100')
+                        fetch(`/api/internships?limit=100&sort=${sortBy}`)
                     ]);
                     
                     const stats = await statsResponse.json();
@@ -505,11 +534,12 @@ def dashboard():
                             ${internship.url ? `<a href="${internship.url}" target="_blank" class="url">View Posting</a>` : ''}
                         </div>
                         <div class="internship-actions">
+                            ${internship.relevance_score > 0 ? `<span class="score-badge ${getScoreClass(internship.relevance_score)}">${internship.relevance_score}% Match</span>` : ''}
                             <span class="status ${internship.application_status || 'not-applied'}">${formatStatus(internship.application_status || 'not_applied')}</span>
                             <div class="action-btns">
                                 <button class="btn btn-sm" onclick="editInternship(${internship.id})">Edit</button>
-                                ${internship.application_status === 'not_applied' || !internship.application_status ? 
-                                    `<button class="btn btn-sm btn-success" onclick="markAsApplied(${internship.id})">Applied</button>` : 
+                                ${internship.application_status === 'not_applied' || !internship.application_status ?
+                                    `<button class="btn btn-sm btn-success" onclick="markAsApplied(${internship.id})">Applied</button>` :
                                     ''}
                                 <button class="btn btn-sm btn-danger" onclick="deleteInternship(${internship.id})">Delete</button>
                             </div>
@@ -527,6 +557,12 @@ def dashboard():
                     'offer': 'Offer'
                 };
                 return statusMap[status] || status;
+            }
+
+            function getScoreClass(score) {
+                if (score >= 60) return 'score-high';
+                if (score >= 30) return 'score-medium';
+                return 'score-low';
             }
             
             function searchInternships() {
@@ -697,12 +733,12 @@ def get_stats():
     }
 
 @app.get("/api/internships")
-def get_internships(search: Optional[str] = None, status: Optional[str] = None, limit: int = 50):
+def get_internships(search: Optional[str] = None, status: Optional[str] = None, sort: Optional[str] = "relevance", limit: int = 50):
     """Get internships with optional filtering"""
     session = get_db_session()
-    
+
     query = session.query(InternshipListing)
-    
+
     if search:
         query = query.filter(
             or_(
@@ -711,12 +747,20 @@ def get_internships(search: Optional[str] = None, status: Optional[str] = None, 
                 InternshipListing.description.contains(search)
             )
         )
-    
+
     if status:
         query = query.filter(InternshipListing.application_status == status)
-    
-    internships = query.order_by(InternshipListing.discovered_at.desc()).limit(limit).all()
-    
+
+    # Sort options
+    if sort == "relevance":
+        internships = query.order_by(InternshipListing.relevance_score.desc()).limit(limit).all()
+    elif sort == "date":
+        internships = query.order_by(InternshipListing.discovered_at.desc()).limit(limit).all()
+    elif sort == "company":
+        internships = query.order_by(InternshipListing.company.asc()).limit(limit).all()
+    else:
+        internships = query.order_by(InternshipListing.relevance_score.desc()).limit(limit).all()
+
     result = []
     for internship in internships:
         result.append({
@@ -729,9 +773,10 @@ def get_internships(search: Optional[str] = None, status: Optional[str] = None, 
             "discovered_at": internship.discovered_at.isoformat(),
             "application_status": internship.application_status,
             "applied": internship.applied,
-            "notes": internship.notes
+            "notes": internship.notes,
+            "relevance_score": internship.relevance_score or 0
         })
-    
+
     session.close()
     return result
 
