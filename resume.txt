@@ -1,0 +1,46 @@
+Abel Prasad
+US Citizen | Penn State University | B.S. Computer Science
+
+SKILLS
+======
+AI / ML: LLM orchestration, Agentic AI, RAG pipelines, NLP, Sentiment Analysis, TensorFlow, Transformers, Machine Learning, Deep Learning
+Backend: FastAPI, Node.js, Express.js, REST APIs, SQLAlchemy, Python, API Development
+Frontend: React, Next.js, HTML, CSS, Tailwind CSS, JavaScript, TypeScript
+Databases: PostgreSQL, MongoDB, SQLite, PostGIS, SQL, NoSQL
+Systems & Infra: Linux, Docker, Chrome Extensions, Manifest V3, Browser Automation, Playwright
+Cloud: AWS, EC2, S3, RDS, Google Cloud Platform, GCP
+
+COURSEWORK
+==========
+Data Structures and Algorithms, Operating Systems, Databases, Computer Architecture, Machine Learning, AI
+
+EXPERIENCE
+==========
+Founder / Software Engineer - Fillr (October 2025 - Present)
+- Built Chrome Extension (Manifest V3) supporting 90%+ ATS platforms
+- Engineered 40+ field detection engine, improving autofill accuracy
+- Added AI cover letters + Q&A (Groq, Llama 3.3 70B)
+
+Founder / Software Engineer - AI Agent (Dec 2025 - Jan 2026)
+- Built self-hosted autonomous AI agent with LLM planning and tool orchestration
+- Integrated Playwright automation, web search, and email alerts via FastAPI backend
+- Persisted, deduplicated, and tracked 100+ internship postings using SQLite
+
+PROJECTS
+========
+AI-Powered Semantic Search Engine - Manifold (Sep 2025 - Oct 2025)
+- Built semantic search over large PDF datasets
+- Added OCR fallback + semantic highlighting
+- Achieved <1s search latency on 10k+ pages
+
+Automated Trading System - CryptoBear (Aug 2025 - Sep 2025)
+- Built automated grid trading bot using Alpaca APIs
+- Deployed 24/7 containerized system on GCP
+- Added real-time Telegram alerts
+
+KEYWORDS
+========
+software engineer, software developer, swe, backend, frontend, full stack, fullstack
+data engineer, ml engineer, machine learning, ai, artificial intelligence
+python, javascript, react, node, fastapi, aws, docker, postgresql, mongodb
+intern, internship, new grad, entry level
