@@ -48,20 +48,28 @@ class InternshipListing(Base):
 
 def get_database_url():
     """Get database file path - uses project directory for consistency"""
-    # Use project directory instead of home to avoid path issues across users
     project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     db_path = os.path.join(project_dir, "internships.db")
     return f"sqlite:///{db_path}"
 
+# Module-level engine singleton - avoids stale connection caching
+_engine = None
+_SessionLocal = None
+
 def init_database():
     """Initialize database and return engine and session factory"""
-    engine = create_engine(get_database_url())
-    Base.metadata.create_all(engine)
-    SessionLocal = sessionmaker(bind=engine)
-    return engine, SessionLocal
+    global _engine, _SessionLocal
+    if _engine is None:
+        _engine = create_engine(
+            get_database_url(),
+            connect_args={"check_same_thread": False}
+        )
+        Base.metadata.create_all(_engine)
+        _SessionLocal = sessionmaker(bind=_engine)
+    return _engine, _SessionLocal
 
 def get_db_session():
-    """Get a database session"""
+    """Get a fresh database session"""
     _, SessionLocal = init_database()
     return SessionLocal()
 

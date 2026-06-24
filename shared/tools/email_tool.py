@@ -8,7 +8,7 @@ class EmailTool(BaseTool):
     name = "send_email"
     description = "Send an email. Args: {'subject': 'subject line', 'body': 'email content'}"
     
-    def execute(self, subject, body):
+    def execute(self, subject, body, html=False):
         """Send an email"""
         try:
             sender = os.getenv("EMAIL_SENDER")
@@ -29,7 +29,7 @@ class EmailTool(BaseTool):
             msg['To'] = recipient
             msg['Subject'] = subject
             
-            msg.attach(MIMEText(body, 'plain'))
+            msg.attach(MIMEText(body, 'html' if html else 'plain'))
             
             # Send via Gmail SMTP
             server = smtplib.SMTP('smtp.gmail.com', 587)

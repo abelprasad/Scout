@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from shared.database.database import get_db_session, InternshipListing, save_internship
@@ -41,6 +42,8 @@ class DatabaseTool(BaseTool):
                 title = internship_data.get('title', internship_data.get('position', ''))
                 company = internship_data.get('company', '')
                 url = internship_data.get('url', '')
+                company_raw = internship_data.get('company', '')
+                company = re.sub(r'<[^>]+>', '', company_raw).strip() if company_raw else ''
                 location = internship_data.get('location', '')
                 description = internship_data.get('description', '')
                 source = internship_data.get('source', 'GitHub')

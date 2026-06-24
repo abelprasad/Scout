@@ -381,7 +381,7 @@ def dashboard():
                         <label>Status</label>
                         <select id="status-filter">
                             <option value="">All Statuses</option>
-                            <option value="not_applied">Not Applied</option>
+                            <option value="not_applied" selected>Not Applied</option>
                             <option value="applied">Applied</option>
                             <option value="interviewing">Interviewing</option>
                             <option value="rejected">Rejected</option>
@@ -391,6 +391,7 @@ def dashboard():
                     <div class="form-group">
                         <label>Sort By</label>
                         <select id="sort-filter" onchange="loadData()">
+                            <option value="best" selected>Nearest &amp; Newest</option>
                             <option value="relevance">Best Match</option>
                             <option value="posted">Recently Posted</option>
                             <option value="date">Recently Found</option>
@@ -402,6 +403,7 @@ def dashboard():
                     </div>
                     <div class="form-group">
                         <button class="btn btn-secondary" onclick="showAddModal()">Add Internship</button>
+                    <button class="btn" id="run-scout-btn" onclick="runScout()">▶ Run Scout</button>
                     </div>
                 </div>
             </div>
@@ -439,7 +441,7 @@ def dashboard():
                     <div class="form-row">
                         <label>Status</label>
                         <select id="edit-status">
-                            <option value="not_applied">Not Applied</option>
+                            <option value="not_applied" selected>Not Applied</option>
                             <option value="applied">Applied</option>
                             <option value="interviewing">Interviewing</option>
                             <option value="rejected">Rejected</option>
@@ -535,7 +537,7 @@ def dashboard():
                             ${internship.url ? `<a href="${internship.url}" target="_blank" class="url">View Posting</a>` : ''}
                         </div>
                         <div class="internship-actions">
-                            ${internship.relevance_score > 0 ? `<span class="score-badge ${getScoreClass(internship.relevance_score)}">${internship.relevance_score}% Match</span>` : ''}
+                            ${internship.relevance_score > 0 ? `<span class="score-badge ${getScoreClass(internship.relevance_score)}">${internship.relevance_score} / 10</span>` : ''}
                             <span class="status ${internship.application_status || 'not-applied'}">${formatStatus(internship.application_status || 'not_applied')}</span>
                             <div class="action-btns">
                                 <button class="btn btn-sm" onclick="editInternship(${internship.id})">Edit</button>
@@ -561,8 +563,8 @@ def dashboard():
             }
 
             function getScoreClass(score) {
-                if (score >= 60) return 'score-high';
-                if (score >= 30) return 'score-medium';
+                if (score >= 4.0) return 'score-high';
+                if (score >= 2.5) return 'score-medium';
                 return 'score-low';
             }
             
@@ -702,6 +704,28 @@ def dashboard():
                 }
             });
             
+            async function runScout() {
+                const btn = document.getElementById('run-scout-btn');
+                btn.textContent = '⏳ Running...';
+                btn.disabled = true;
+                try {
+                    const response = await fetch('/api/run-scout', { method: 'POST' });
+                    const data = await response.json();
+                    if (data.success) {
+                        const r = data.result?.data;
+                        btn.textContent = `✅ +${r?.new_saved || 0} new`;
+                        setTimeout(() => { btn.textContent = '▶ Run Scout'; btn.disabled = false; }, 4000);
+                        loadData();
+                    } else {
+                        btn.textContent = '❌ Failed';
+                        setTimeout(() => { btn.textContent = '▶ Run Scout'; btn.disabled = false; }, 3000);
+                    }
+                } catch (e) {
+                    btn.textContent = '❌ Error';
+                    setTimeout(() => { btn.textContent = '▶ Run Scout'; btn.disabled = false; }, 3000);
+                }
+            }
+
             // Load data on page load and set up refresh
             loadData();
             setInterval(loadData, 60000); // Refresh every minute
@@ -750,10 +774,21 @@ def get_internships(search: Optional[str] = None, status: Optional[str] = None, 
         )
 
     if status:
-        query = query.filter(InternshipListing.application_status == status)
+        if status == "not_applied":
+            query = query.filter(
+                (InternshipListing.application_status == "not_applied") |
+                (InternshipListing.application_status == None)
+            )
+        else:
+            query = query.filter(InternshipListing.application_status == status)
 
     # Sort options
-    if sort == "relevance":
+    if sort == "best":
+        internships = query.order_by(
+            InternshipListing.relevance_score.desc(),
+            InternshipListing.discovered_at.desc()
+        ).limit(limit).all()
+    elif sort == "relevance":
         internships = query.order_by(InternshipListing.relevance_score.desc()).limit(limit).all()
     elif sort == "posted":
         # Sort by age_days ascending (newest posts = lowest age_days)
@@ -864,6 +899,17 @@ def delete_internship(internship_id: int):
     session.close()
     
     return {"success": True}
+
+
+@app.post("/api/run-scout")
+def run_scout():
+    """Proxy to trigger Scout workflow"""
+    import httpx
+    try:
+        response = httpx.post("http://localhost:8000/run-workflow", timeout=120)
+        return response.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
