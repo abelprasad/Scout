@@ -6,9 +6,9 @@ import sys
 import os
 
 # Add paths for new structure
-sys.path.append('/home/abel/ai-agent')
-sys.path.append('/home/abel/ai-agent/shared')
-sys.path.append('/home/abel/ai-agent/agents')
+sys.path.append('/home/abel/scout')
+sys.path.append('/home/abel/scout/shared')
+sys.path.append('/home/abel/scout/agents')
 
 from agent import Agent
 from shared.tools.websearch import WebSearchTool

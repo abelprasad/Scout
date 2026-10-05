@@ -5,7 +5,7 @@ _Last updated: 2026-05-09_
 ## Session summary (2026-05-09)
 
 - `docs/` directory created with `CONTEXT.md`, `TODO.md`, `LEARNINGS.md`, `HANDOFF.md`
-- `resume.pdf` uploaded to `~/ai-agent/resume.pdf`; `pypdf` installed into venv
+- `resume.pdf` uploaded to `~/scout/resume.pdf`; `pypdf` installed into venv
 - ResumeMatcher v2 deployed (`agents/analyzer/resume_matcher.py`) — 0–10 scale, skill categories + location + recency
 - All 5,947 listings rescored under v2
 

@@ -102,7 +102,7 @@ Sends immediate Telegram alerts on new discoveries. Auto-splits messages at 4000
 
 **`resume_matcher.py` — `ResumeMatcher`**
 
-Loads `~/ai-agent/resume.txt`; falls back to a hardcoded default skill list if missing.
+Loads `~/scout/resume.txt`; falls back to a hardcoded default skill list if missing.
 
 **Scoring v1 — current formula (0–100):**
 
@@ -221,4 +221,4 @@ SQLite at `internships.db` (path resolved relative to project root — portable)
 
 ## Path Notes
 
-`interfaces/api/main.py` hard-codes `sys.path.append('/home/abel/ai-agent')`. If the project is moved, update these. `shared/database/database.py` uses `__file__`-relative resolution and is portable.
+`interfaces/api/main.py` hard-codes `sys.path.append('/home/abel/scout')`. If the project is moved, update these. `shared/database/database.py` uses `__file__`-relative resolution and is portable.

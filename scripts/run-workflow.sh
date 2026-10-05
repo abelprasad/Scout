@@ -1,7 +1,7 @@
 #!/bin/bash
 # Internship discovery workflow trigger for cron
 
-LOG="/var/log/ai-agent/cron.log"
+LOG="/var/log/scout/cron.log"
 
 echo "[$(date)] Starting workflow" >> $LOG
 

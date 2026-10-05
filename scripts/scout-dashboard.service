@@ -1,0 +1,17 @@
+[Unit]
+Description=AI Agent Web Dashboard
+After=network.target scout-api.service
+Wants=scout-api.service
+
+[Service]
+Type=simple
+User=abel
+WorkingDirectory=/home/abel/scout
+Environment="HOME=/home/abel"
+EnvironmentFile=/home/abel/scout/.env
+ExecStart=/home/abel/scout/venv/bin/python interfaces/web/web_dashboard.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

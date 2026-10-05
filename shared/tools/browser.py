@@ -58,7 +58,7 @@ class BrowserTool(BaseTool):
                 
                 elif action == "screenshot":
                     # Take screenshot
-                    screenshot_path = f"~/ai-agent/output/screenshot_{int(time.time())}.png"
+                    screenshot_path = f"~/scout/output/screenshot_{int(time.time())}.png"
                     screenshot_path = os.path.expanduser(screenshot_path)
                     page.screenshot(path=screenshot_path)
                     

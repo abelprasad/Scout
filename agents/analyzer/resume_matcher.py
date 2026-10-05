@@ -90,7 +90,7 @@ class ResumeMatcher(BaseTool):
     description = "Score internships 0-10 against Abel's resume (v2: skills + location + recency)"
 
     def __init__(self, resume_path=None):
-        self.resume_path = resume_path or os.path.expanduser("~/ai-agent/resume.pdf")
+        self.resume_path = resume_path or os.path.expanduser("~/scout/resume.pdf")
         self.resume_text = _load_resume_text(self.resume_path)
         if self.resume_text:
             print(f"[ResumeMatcher] Loaded resume ({len(self.resume_text)} chars)")

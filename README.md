@@ -69,8 +69,8 @@ User Input → FastAPI Server → Background Worker → Agent Loop
 
 1. **Clone the repository**
 ```bash
-   git clone https://github.com/abelprasad/ai-agent.git
-   cd ai-agent
+   git clone https://github.com/abelprasad/scout.git
+   cd scout
 ```
 
 2. **Set up Python environment**
@@ -184,7 +184,7 @@ Features:
 
 ### Project Structure
 ```
-ai-agent/
+scout/
 ├── agent.py              # Core agent orchestration logic
 ├── main.py               # FastAPI server and job management
 ├── database.py           # Database schema and utilities

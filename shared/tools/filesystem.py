@@ -8,8 +8,8 @@ class FileSystemTool(BaseTool):
     def execute(self, filename, content):
         """Write content to a file"""
         try:
-            # Write to ~/ai-agent/output directory
-            output_dir = os.path.expanduser("~/ai-agent/output")
+            # Write to ~/scout/output directory
+            output_dir = os.path.expanduser("~/scout/output")
             os.makedirs(output_dir, exist_ok=True)
             
             filepath = os.path.join(output_dir, filename)
