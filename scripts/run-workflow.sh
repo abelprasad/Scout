@@ -1,5 +1,5 @@
 #!/bin/bash
-# Internship discovery workflow trigger for cron
+# Mission workflow trigger for cron (runs the active mission)
 
 LOG="/var/log/scout/cron.log"
 

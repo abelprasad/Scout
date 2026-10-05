@@ -9,7 +9,7 @@ User=abel
 WorkingDirectory=/home/abel/scout
 Environment="HOME=/home/abel"
 EnvironmentFile=/home/abel/scout/.env
-ExecStart=/home/abel/scout/venv/bin/python /home/abel/scout/shared/tools/telegram_bot.py
+ExecStart=/home/abel/scout/venv/bin/python /home/abel/scout/core/tools/telegram_bot.py
 Restart=on-failure
 RestartSec=10
 
