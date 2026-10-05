@@ -1,7 +1,7 @@
-# AI Agent Cron Jobs
+# Scout Cron Jobs
 # Install with: crontab ~/scout/scripts/crontab.txt
 
-# Internship discovery - 8 AM and 6 PM daily
+# Mission workflow - 8 AM and 6 PM daily (runs ACTIVE_MISSION)
 0 8,18 * * * /home/abel/scout/scripts/run-workflow.sh
 
 # DB backup - 3 AM daily
